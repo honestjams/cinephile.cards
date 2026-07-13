@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinephile Cards — The Movie Guessing Game</title>
+  <meta name="description" content="Create, collect and export trading cards for Cinephile, the movie guessing game.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="logo-block">
+        <div class="logo">CINEPHILE<span class="logo-star">★</span>CARDS</div>
+        <div class="tagline">The Movie Guessing Game &mdash; Card Maker</div>
+      </div>
+      <div class="header-actions">
+        <input type="search" id="search-input" class="search-input" placeholder="Search actor or movie…" autocomplete="off">
+        <button class="btn btn-gold" id="btn-new-card">+ New Card</button>
+        <div class="export-menu">
+          <button class="btn btn-outline" id="btn-export-menu">Export Deck ▾</button>
+          <div class="export-dropdown" id="export-dropdown" hidden>
+            <button id="btn-export-all-pdf">Full deck as PDF (print sheet)</button>
+            <button id="btn-export-all-png">Full deck as PNGs (.zip)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="deck-meta">
+      <span id="deck-count"></span>
+      <span class="deck-hint">Click a card's photo area to add the actor's movie-specific image. Hover a card for edit &amp; export options.</span>
+    </div>
+    <div class="card-grid" id="card-grid"></div>
+    <div class="empty-state" id="empty-state" hidden>
+      <p>No cards match your search.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    CINEPHILE CARDS &mdash; guess the movie from the actor &amp; the scene.
+  </footer>
+
+  <!-- Create / Edit modal -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h2 id="modal-title">New Card</h2>
+      <form id="card-form">
+        <label for="field-actor">Actor name</label>
+        <input type="text" id="field-actor" required maxlength="40" placeholder="e.g. KEANU REEVES">
+        <label for="field-movie">Movie (shown on the image)</label>
+        <input type="text" id="field-movie" required maxlength="80" placeholder="e.g. The Matrix">
+        <label>Actor image <span class="label-note">(movie-specific still)</span></label>
+        <div class="image-drop" id="image-drop" tabindex="0">
+          <img id="image-preview" alt="" hidden>
+          <span id="image-drop-text">Click or drop an image here</span>
+        </div>
+        <input type="file" id="field-image" accept="image/*" hidden>
+        <div class="modal-buttons">
+          <button type="button" class="btn btn-outline" id="btn-cancel">Cancel</button>
+          <button type="submit" class="btn btn-gold" id="btn-save">Save Card</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Busy overlay for batch exports -->
+  <div class="progress-overlay" id="progress-overlay" hidden>
+    <div class="progress-box">
+      <div class="progress-title" id="progress-title">Exporting…</div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+      <div class="progress-detail" id="progress-detail"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <!-- Offscreen stage where cards are rendered at export resolution -->
+  <div id="export-stage" aria-hidden="true"></div>
+
+  <!-- Hidden file input for direct per-card photo upload -->
+  <input type="file" id="direct-image-input" accept="image/*" hidden>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="vendor/jszip.min.js"></script>
+  <script src="js/cards-data.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
