@@ -27,6 +27,12 @@
     emerald:  { name: 'Emerald',   accent: '#43a06c', bright: '#9fe4bd', deep: '#1f5c3a' },
     sapphire: { name: 'Sapphire',  accent: '#5b86d8', bright: '#b3cbf5', deep: '#2b4a8c' },
     crimson:  { name: 'Crimson',   accent: '#c45555', bright: '#f0a8a8', deep: '#762a2a' },
+    bronze:   { name: 'Bronze',    accent: '#b0793f', bright: '#e3b285', deep: '#6e4620' },
+    teal:     { name: 'Teal',      accent: '#3aa6a0', bright: '#95ded9', deep: '#1d5f5b' },
+    amethyst: { name: 'Amethyst',  accent: '#9a6fd0', bright: '#cdb1ef', deep: '#5b3a86' },
+    blush:    { name: 'Blush',     accent: '#d883a6', bright: '#f3bfd4', deep: '#8f4a68' },
+    arctic:   { name: 'Arctic',    accent: '#7fb6d9', bright: '#c8e4f5', deep: '#43708f' },
+    onyx:     { name: 'Onyx',      accent: '#5a5f6a', bright: '#9aa1ad', deep: '#2c2f36' },
   };
   const BACKGROUNDS = {
     midnight: { name: 'Midnight', light: false,
@@ -53,6 +59,26 @@
       panel: 'linear-gradient(160deg,#faf5ea 0%,#f0e7d3 55%,#e6d9bd 100%)',
       photo: ['#efe7d6', '#dfd3b8'], frame: '#cdbf9f',
       text: '#33291a', dim: '#8a7c5c', faint: '#a4977a' },
+    ocean: { name: 'Ocean', light: false,
+      panel: 'linear-gradient(160deg,#0f333a 0%,#092025 45%,#051317 100%)',
+      photo: ['#124049', '#08191d'], frame: '#03090b',
+      text: '#e8f2f1', dim: '#8fb0ad', faint: '#6a8683' },
+    slate: { name: 'Slate', light: false,
+      panel: 'linear-gradient(160deg,#2a3442 0%,#181f2a 45%,#0e1219 100%)',
+      photo: ['#303c4c', '#131922'], frame: '#070a0e',
+      text: '#edf0f4', dim: '#97a2b2', faint: '#707a88' },
+    mocha: { name: 'Mocha', light: false,
+      panel: 'linear-gradient(160deg,#332519 0%,#20160d 45%,#120b06 100%)',
+      photo: ['#3d2c1e', '#180f0a'], frame: '#090502',
+      text: '#f2ece5', dim: '#ab9a88', faint: '#82735f' },
+    plum: { name: 'Plum', light: false,
+      panel: 'linear-gradient(160deg,#382238 0%,#221322 45%,#130a14 100%)',
+      photo: ['#43293f', '#180e1a'], frame: '#090409',
+      text: '#f2eaf2', dim: '#ab93ab', faint: '#816a81' },
+    paper: { name: 'Paper', light: true,
+      panel: 'linear-gradient(160deg,#ffffff 0%,#f5f3ec 55%,#e9e6db 100%)',
+      photo: ['#f4f2ec', '#e2dfd4'], frame: '#d5d1c5',
+      text: '#26221a', dim: '#8b8577', faint: '#a39d8e' },
   };
   const FONTS = {
     cinzel:   { family: "'Cinzel', serif", weight: 900, italic: false },
@@ -61,14 +87,52 @@
     modern:   { family: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", weight: 800, italic: false },
   };
   const DEFAULT_STYLE = {
-    theme: 'gold', bg: 'midnight',
+    theme: 'gold', bg: 'midnight', frameStyle: 'foil',
+    themeCustom: '#d4af37', bgCustom: '#1a2233',
     nameFont: 'cinzel', titleFont: 'playfair',
     photoFit: 'cover', photoPos: 'center', sprockets: true,
     brand: 'CINEPHILE', label: 'FEATURED IN', footer: 'THE MOVIE GUESSING GAME',
   };
   const styleOf = card => ({ ...DEFAULT_STYLE, ...(card.style || {}) });
-  const themeOf = s => THEMES[s.theme] || THEMES.gold;
-  const bgOf = s => BACKGROUNDS[s.bg] || BACKGROUNDS.midnight;
+
+  /* Custom-colour helpers: derive a full theme or background from one hex. */
+  const hexToRgb = h => {
+    h = h.replace('#', '');
+    return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+  };
+  const rgbToHex = (r, g, b) =>
+    '#' + [r, g, b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+  // pct > 0 blends toward white, pct < 0 toward black
+  function shade(hex, pct) {
+    const [r, g, b] = hexToRgb(hex);
+    return pct >= 0
+      ? rgbToHex(r + (255 - r) * pct, g + (255 - g) * pct, b + (255 - b) * pct)
+      : rgbToHex(r * (1 + pct), g * (1 + pct), b * (1 + pct));
+  }
+  const luminance = hex => {
+    const [r, g, b] = hexToRgb(hex);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  };
+  const themeFromHex = hex =>
+    ({ name: 'Custom', accent: hex, bright: shade(hex, 0.45), deep: shade(hex, -0.45) });
+  function bgFromHex(hex) {
+    const light = luminance(hex) > 0.55;
+    return {
+      name: 'Custom', light,
+      panel: `linear-gradient(160deg, ${shade(hex, 0.08)} 0%, ${hex} 45%, ${shade(hex, -0.3)} 100%)`,
+      photo: [shade(hex, 0.1), shade(hex, -0.35)],
+      frame: shade(hex, -0.6),
+      text: light ? '#26221a' : '#f0eee8',
+      dim: light ? shade(hex, -0.55) : shade(hex, 0.45),
+      faint: light ? shade(hex, -0.4) : shade(hex, 0.28),
+    };
+  }
+  const themeOf = s =>
+    s.theme === 'custom' ? themeFromHex(s.themeCustom || DEFAULT_STYLE.themeCustom)
+      : (THEMES[s.theme] || THEMES.gold);
+  const bgOf = s =>
+    s.bg === 'custom' ? bgFromHex(s.bgCustom || DEFAULT_STYLE.bgCustom)
+      : (BACKGROUNDS[s.bg] || BACKGROUNDS.midnight);
   const foil = t =>
     `linear-gradient(135deg, ${t.deep} 0%, ${t.bright} 22%, ${t.accent} 45%, ${t.bright} 62%, ${t.accent} 78%, ${t.deep} 100%)`;
 
@@ -141,10 +205,22 @@
       </div>`;
 
     // Frame + panel colours
-    el.style.background = foil(t);
     const inner = el.querySelector('.cine-card-inner');
     inner.style.background = bg.panel;
-    inner.style.borderColor = t.bright + '59';
+    if (s.frameStyle === 'none') {
+      el.style.background = 'transparent';
+      el.style.padding = '0';
+      inner.style.border = 'none';
+      inner.style.borderRadius = '16px';
+    } else if (s.frameStyle === 'thin') {
+      el.style.background = t.accent;
+      el.style.padding = '2px';
+      inner.style.border = 'none';
+      inner.style.borderRadius = '14px';
+    } else {
+      el.style.background = foil(t);
+      inner.style.borderColor = t.bright + '59';
+    }
 
     const brand = el.querySelector('.cc-brand');
     brand.textContent = s.brand;
@@ -319,10 +395,26 @@
   const fieldFooter = document.getElementById('field-footer');
   const fieldSprockets = document.getElementById('field-sprockets');
   const fieldApplyAll = document.getElementById('field-apply-all');
+  const fieldFrame = document.getElementById('field-frame');
   const themeSwatches = document.getElementById('theme-swatches');
   const bgSwatches = document.getElementById('bg-swatches');
   let selectedTheme = DEFAULT_STYLE.theme;
   let selectedBg = DEFAULT_STYLE.bg;
+  let customThemeHex = DEFAULT_STYLE.themeCustom;
+  let customBgHex = DEFAULT_STYLE.bgCustom;
+
+  function makeCustomSwatch(isSelected, hex, preview, onPick) {
+    const wrap = document.createElement('label');
+    wrap.className = 'swatch swatch-custom' + (isSelected ? ' selected' : '');
+    wrap.title = 'Pick any colour';
+    if (isSelected) wrap.style.background = preview;
+    const input = document.createElement('input');
+    input.type = 'color';
+    input.value = hex;
+    input.addEventListener('input', () => onPick(input.value));
+    wrap.appendChild(input);
+    return wrap;
+  }
 
   function renderSwatches() {
     themeSwatches.innerHTML = '';
@@ -335,6 +427,10 @@
       b.addEventListener('click', () => { selectedTheme = key; renderSwatches(); });
       themeSwatches.appendChild(b);
     }
+    themeSwatches.appendChild(makeCustomSwatch(
+      selectedTheme === 'custom', customThemeHex, foil(themeFromHex(customThemeHex)),
+      hex => { customThemeHex = hex; selectedTheme = 'custom'; renderSwatches(); }));
+
     bgSwatches.innerHTML = '';
     for (const [key, bg] of Object.entries(BACKGROUNDS)) {
       const b = document.createElement('button');
@@ -345,6 +441,9 @@
       b.addEventListener('click', () => { selectedBg = key; renderSwatches(); });
       bgSwatches.appendChild(b);
     }
+    bgSwatches.appendChild(makeCustomSwatch(
+      selectedBg === 'custom', customBgHex, bgFromHex(customBgHex).panel,
+      hex => { customBgHex = hex; selectedBg = 'custom'; renderSwatches(); }));
   }
 
   function openModal(card) {
@@ -357,6 +456,9 @@
     const s = card ? styleOf(card) : { ...DEFAULT_STYLE };
     selectedTheme = s.theme;
     selectedBg = s.bg;
+    customThemeHex = s.themeCustom || DEFAULT_STYLE.themeCustom;
+    customBgHex = s.bgCustom || DEFAULT_STYLE.bgCustom;
+    fieldFrame.value = s.frameStyle || 'foil';
     fieldNameFont.value = s.nameFont;
     fieldTitleFont.value = s.titleFont;
     fieldPhotoFit.value = s.photoFit;
@@ -378,6 +480,9 @@
     return {
       theme: selectedTheme,
       bg: selectedBg,
+      themeCustom: customThemeHex,
+      bgCustom: customBgHex,
+      frameStyle: fieldFrame.value,
       nameFont: fieldNameFont.value,
       titleFont: fieldTitleFont.value,
       photoFit: fieldPhotoFit.value,
@@ -598,6 +703,37 @@
     }
   }
 
+  /* ---------- Deck backup & restore ---------- */
+  function backupDeck() {
+    const payload = { app: 'cinephile-cards', version: 1, exported: new Date().toISOString(), cards };
+    downloadBlob(new Blob([JSON.stringify(payload)], { type: 'application/json' }),
+      'cinephile-deck-backup.json');
+    toast('Backup saved — keep it somewhere safe.');
+  }
+
+  const restoreInput = document.getElementById('restore-input');
+  restoreInput.addEventListener('change', async () => {
+    const file = restoreInput.files[0];
+    restoreInput.value = '';
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      const list = Array.isArray(data) ? data : data.cards;
+      if (!Array.isArray(list) || !list.length ||
+          !list.every(c => c && c.id && typeof c.actor === 'string' && typeof c.movie === 'string')) {
+        throw new Error('invalid');
+      }
+      if (!confirm(`Replace the current deck with ${list.length} cards from this backup?`)) return;
+      await DB.clear();
+      await DB.putMany(list);
+      cards = list.sort((a, b) => a.num - b.num);
+      render();
+      toast(`Deck restored — ${list.length} cards.`);
+    } catch (err) {
+      toast('That file is not a valid deck backup.');
+    }
+  });
+
   /* ---------- Export dropdown ---------- */
   const dropdown = document.getElementById('export-dropdown');
   document.getElementById('btn-export-menu').addEventListener('click', e => {
@@ -607,6 +743,8 @@
   document.addEventListener('click', () => { dropdown.hidden = true; });
   document.getElementById('btn-export-all-pdf').addEventListener('click', exportAllPDF);
   document.getElementById('btn-export-all-png').addEventListener('click', exportAllPNG);
+  document.getElementById('btn-backup').addEventListener('click', backupDeck);
+  document.getElementById('btn-restore').addEventListener('click', () => restoreInput.click());
 
   /* ---------- Misc ---------- */
   const toastEl = document.getElementById('toast');
@@ -622,6 +760,10 @@
 
   /* ---------- Init ---------- */
   (async function init() {
+    // Ask the browser to protect our storage from automatic eviction so
+    // uploaded photos survive between visits.
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (_) {}
+
     let stored = [];
     try {
       stored = await DB.getAll();
@@ -632,6 +774,9 @@
     } catch (err) {
       console.error('IndexedDB unavailable, running without persistence', err);
       stored = PRELOADED_CARDS;
+      setTimeout(() => toast(
+        'Warning: this browser is blocking local storage (private window?). ' +
+        'Changes will be lost when you leave — use “Backup deck data” to save your work.'), 800);
     }
     cards = stored.sort((a, b) => a.num - b.num);
     render();

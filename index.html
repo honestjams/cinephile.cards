@@ -6,7 +6,7 @@
   <title>Cinephile Cards — The Movie Guessing Game</title>
   <meta name="description" content="Create, collect and export trading cards for Cinephile, the movie guessing game.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%AC%3C/text%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=2">
+  <link rel="stylesheet" href="css/styles.css?v=3">
 </head>
 <body>
 
@@ -24,6 +24,8 @@
           <div class="export-dropdown" id="export-dropdown" hidden>
             <button id="btn-export-all-pdf">Full deck as PDF (print sheet)</button>
             <button id="btn-export-all-png">Full deck as PNGs (.zip)</button>
+            <button id="btn-backup">Backup deck data (.json)</button>
+            <button id="btn-restore">Restore deck from backup…</button>
           </div>
         </div>
       </div>
@@ -62,10 +64,27 @@
         <input type="file" id="field-image" accept="image/*" hidden>
 
         <h3 class="style-heading">Card Style</h3>
-        <label>Frame theme</label>
+        <label>Frame colour <span class="label-note">(last swatch = pick any colour)</span></label>
         <div class="swatch-row" id="theme-swatches"></div>
-        <label>Background</label>
+        <label>Background <span class="label-note">(last swatch = pick any colour)</span></label>
         <div class="swatch-row" id="bg-swatches"></div>
+        <div class="row-2">
+          <div>
+            <label for="field-frame">Frame style</label>
+            <select id="field-frame">
+              <option value="foil">Metallic foil</option>
+              <option value="thin">Thin line</option>
+              <option value="none">Borderless</option>
+            </select>
+          </div>
+          <div>
+            <label for="field-photo-fit">Photo fit</label>
+            <select id="field-photo-fit">
+              <option value="cover">Fill frame</option>
+              <option value="contain">Fit inside</option>
+            </select>
+          </div>
+        </div>
         <div class="row-2">
           <div>
             <label for="field-name-font">Name font</label>
@@ -88,13 +107,6 @@
         </div>
         <div class="row-2">
           <div>
-            <label for="field-photo-fit">Photo fit</label>
-            <select id="field-photo-fit">
-              <option value="cover">Fill frame</option>
-              <option value="contain">Fit inside</option>
-            </select>
-          </div>
-          <div>
             <label for="field-photo-pos">Photo focus</label>
             <select id="field-photo-pos">
               <option value="top">Top</option>
@@ -102,27 +114,23 @@
               <option value="bottom">Bottom</option>
             </select>
           </div>
-        </div>
-        <div class="row-2">
           <div>
             <label for="field-num">Card number</label>
             <input type="number" id="field-num" min="1" max="999">
           </div>
+        </div>
+        <div class="row-2">
           <div>
             <label for="field-brand">Header text</label>
             <input type="text" id="field-brand" maxlength="18">
           </div>
-        </div>
-        <div class="row-2">
           <div>
             <label for="field-label">Small label</label>
             <input type="text" id="field-label" maxlength="24">
           </div>
-          <div>
-            <label for="field-footer">Footer text</label>
-            <input type="text" id="field-footer" maxlength="34">
-          </div>
         </div>
+        <label for="field-footer">Footer text</label>
+        <input type="text" id="field-footer" maxlength="34">
         <label class="checkbox-line"><input type="checkbox" id="field-sprockets" checked> Show film-strip edges</label>
         <label class="checkbox-line apply-all"><input type="checkbox" id="field-apply-all"> Apply this style to every card in the deck</label>
 
@@ -150,12 +158,14 @@
 
   <!-- Hidden file input for direct per-card photo upload -->
   <input type="file" id="direct-image-input" accept="image/*" hidden>
+  <!-- Hidden file input for deck restore -->
+  <input type="file" id="restore-input" accept=".json,application/json" hidden>
 
-  <script src="vendor/html2canvas.min.js?v=2"></script>
-  <script src="vendor/jspdf.umd.min.js?v=2"></script>
-  <script src="vendor/jszip.min.js?v=2"></script>
-  <script src="js/cards-data.js?v=2"></script>
-  <script src="js/db.js?v=2"></script>
-  <script src="js/app.js?v=2"></script>
+  <script src="vendor/html2canvas.min.js?v=3"></script>
+  <script src="vendor/jspdf.umd.min.js?v=3"></script>
+  <script src="vendor/jszip.min.js?v=3"></script>
+  <script src="js/cards-data.js?v=3"></script>
+  <script src="js/db.js?v=3"></script>
+  <script src="js/app.js?v=3"></script>
 </body>
 </html>

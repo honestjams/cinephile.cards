@@ -39,5 +39,6 @@ const DB = (() => {
     put(card)      { return withStore('readwrite', s => s.put(card)); },
     putMany(cards) { return withStore('readwrite', s => cards.forEach(c => s.put(c))); },
     remove(id)     { return withStore('readwrite', s => s.delete(id)); },
+    clear()        { return withStore('readwrite', s => s.clear()); },
   };
 })();
