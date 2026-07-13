@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/cinephile-trading-cards-jg4uau]
+    branches: [main, claude/cinephile-trading-cards-jg4uau]
   workflow_dispatch:
 
 permissions:
