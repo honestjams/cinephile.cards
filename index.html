@@ -60,6 +60,72 @@
           <span id="image-drop-text">Click or drop an image here</span>
         </div>
         <input type="file" id="field-image" accept="image/*" hidden>
+
+        <h3 class="style-heading">Card Style</h3>
+        <label>Frame theme</label>
+        <div class="swatch-row" id="theme-swatches"></div>
+        <label>Background</label>
+        <div class="swatch-row" id="bg-swatches"></div>
+        <div class="row-2">
+          <div>
+            <label for="field-name-font">Name font</label>
+            <select id="field-name-font">
+              <option value="cinzel">Cinzel (classic)</option>
+              <option value="playfair">Playfair Display</option>
+              <option value="georgia">Georgia serif</option>
+              <option value="modern">Modern sans</option>
+            </select>
+          </div>
+          <div>
+            <label for="field-title-font">Movie font</label>
+            <select id="field-title-font">
+              <option value="playfair">Playfair italic</option>
+              <option value="cinzel">Cinzel (classic)</option>
+              <option value="georgia">Georgia italic</option>
+              <option value="modern">Modern sans</option>
+            </select>
+          </div>
+        </div>
+        <div class="row-2">
+          <div>
+            <label for="field-photo-fit">Photo fit</label>
+            <select id="field-photo-fit">
+              <option value="cover">Fill frame</option>
+              <option value="contain">Fit inside</option>
+            </select>
+          </div>
+          <div>
+            <label for="field-photo-pos">Photo focus</label>
+            <select id="field-photo-pos">
+              <option value="top">Top</option>
+              <option value="center" selected>Center</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
+        </div>
+        <div class="row-2">
+          <div>
+            <label for="field-num">Card number</label>
+            <input type="number" id="field-num" min="1" max="999">
+          </div>
+          <div>
+            <label for="field-brand">Header text</label>
+            <input type="text" id="field-brand" maxlength="18">
+          </div>
+        </div>
+        <div class="row-2">
+          <div>
+            <label for="field-label">Small label</label>
+            <input type="text" id="field-label" maxlength="24">
+          </div>
+          <div>
+            <label for="field-footer">Footer text</label>
+            <input type="text" id="field-footer" maxlength="34">
+          </div>
+        </div>
+        <label class="checkbox-line"><input type="checkbox" id="field-sprockets" checked> Show film-strip edges</label>
+        <label class="checkbox-line apply-all"><input type="checkbox" id="field-apply-all"> Apply this style to every card in the deck</label>
+
         <div class="modal-buttons">
           <button type="button" class="btn btn-outline" id="btn-cancel">Cancel</button>
           <button type="submit" class="btn btn-gold" id="btn-save">Save Card</button>

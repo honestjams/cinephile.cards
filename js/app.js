@@ -19,14 +19,67 @@
   let modalImage = null;  // data URL chosen in the modal
   let directUploadId = null;
 
+  /* ---------- Customisation presets ---------- */
+  const THEMES = {
+    gold:     { name: 'Gold',      accent: '#d4af37', bright: '#f3d878', deep: '#8a6d1f' },
+    silver:   { name: 'Silver',    accent: '#aeb6c2', bright: '#eef1f6', deep: '#636b78' },
+    rose:     { name: 'Rose gold', accent: '#c98d80', bright: '#f0cec2', deep: '#84544a' },
+    emerald:  { name: 'Emerald',   accent: '#43a06c', bright: '#9fe4bd', deep: '#1f5c3a' },
+    sapphire: { name: 'Sapphire',  accent: '#5b86d8', bright: '#b3cbf5', deep: '#2b4a8c' },
+    crimson:  { name: 'Crimson',   accent: '#c45555', bright: '#f0a8a8', deep: '#762a2a' },
+  };
+  const BACKGROUNDS = {
+    midnight: { name: 'Midnight', light: false,
+      panel: 'linear-gradient(160deg,#182030 0%,#0e1420 45%,#0a0e17 100%)',
+      photo: ['#1d2739', '#0b101c'], frame: '#05070c',
+      text: '#f0ede4', dim: '#8d94a3', faint: '#6d7482' },
+    noir: { name: 'Noir', light: false,
+      panel: 'linear-gradient(160deg,#232326 0%,#131316 45%,#0a0a0c 100%)',
+      photo: ['#28282c', '#101013'], frame: '#050506',
+      text: '#efefec', dim: '#9a9aa2', faint: '#727279' },
+    burgundy: { name: 'Burgundy', light: false,
+      panel: 'linear-gradient(160deg,#3a1520 0%,#220a12 45%,#140609 100%)',
+      photo: ['#411a28', '#170810'], frame: '#0a0306',
+      text: '#f4e9e6', dim: '#b39399', faint: '#8a686e' },
+    forest: { name: 'Forest', light: false,
+      panel: 'linear-gradient(160deg,#14301f 0%,#0b1d12 45%,#06110a 100%)',
+      photo: ['#1a3a27', '#0b1a11'], frame: '#030905',
+      text: '#eaf2e9', dim: '#93ac97', faint: '#6d8471' },
+    royal: { name: 'Royal', light: false,
+      panel: 'linear-gradient(160deg,#291d43 0%,#170f2b 45%,#0d081a 100%)',
+      photo: ['#2f2350', '#140d29'], frame: '#070311',
+      text: '#efeaf6', dim: '#a297bd', faint: '#78708f' },
+    ivory: { name: 'Ivory', light: true,
+      panel: 'linear-gradient(160deg,#faf5ea 0%,#f0e7d3 55%,#e6d9bd 100%)',
+      photo: ['#efe7d6', '#dfd3b8'], frame: '#cdbf9f',
+      text: '#33291a', dim: '#8a7c5c', faint: '#a4977a' },
+  };
+  const FONTS = {
+    cinzel:   { family: "'Cinzel', serif", weight: 900, italic: false },
+    playfair: { family: "'Playfair Display', Georgia, serif", weight: 600, italic: true },
+    georgia:  { family: "Georgia, 'Times New Roman', serif", weight: 700, italic: true },
+    modern:   { family: "-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif", weight: 800, italic: false },
+  };
+  const DEFAULT_STYLE = {
+    theme: 'gold', bg: 'midnight',
+    nameFont: 'cinzel', titleFont: 'playfair',
+    photoFit: 'cover', photoPos: 'center', sprockets: true,
+    brand: 'CINEPHILE', label: 'FEATURED IN', footer: 'THE MOVIE GUESSING GAME',
+  };
+  const styleOf = card => ({ ...DEFAULT_STYLE, ...(card.style || {}) });
+  const themeOf = s => THEMES[s.theme] || THEMES.gold;
+  const bgOf = s => BACKGROUNDS[s.bg] || BACKGROUNDS.midnight;
+  const foil = t =>
+    `linear-gradient(135deg, ${t.deep} 0%, ${t.bright} 22%, ${t.accent} 45%, ${t.bright} 62%, ${t.accent} 78%, ${t.deep} 100%)`;
+
   /* ---------- Placeholder artwork (inline SVG data URI) ---------- */
-  const PLACEHOLDER_SVG = (() => {
+  function placeholderSvg(t, bg) {
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="310" viewBox="0 0 300 310">
       <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#1d2739"/><stop offset="1" stop-color="#0b101c"/>
+        <stop offset="0" stop-color="${bg.photo[0]}"/><stop offset="1" stop-color="${bg.photo[1]}"/>
       </linearGradient></defs>
       <rect width="300" height="310" fill="url(#g)"/>
-      <g stroke="#c9a83c" stroke-width="6" fill="none" stroke-linejoin="round">
+      <g stroke="${t.accent}" stroke-width="6" fill="none" stroke-linejoin="round">
         <g transform="rotate(-14 90 118)">
           <rect x="88" y="100" width="124" height="30" rx="4"/>
           <line x1="112" y1="102" x2="126" y2="128"/>
@@ -35,10 +88,10 @@
         </g>
         <rect x="88" y="136" width="124" height="84" rx="6"/>
       </g>
-      <text x="150" y="262" text-anchor="middle" fill="#8d94a3" font-family="Georgia, serif" font-size="15" letter-spacing="4">ADD SCENE PHOTO</text>
+      <text x="150" y="262" text-anchor="middle" fill="${bg.dim}" font-family="Georgia, serif" font-size="15" letter-spacing="4">ADD SCENE PHOTO</text>
     </svg>`;
     return 'data:image/svg+xml,' + encodeURIComponent(svg.replace(/\s+/g, ' '));
-  })();
+  }
 
   /* ---------- Card DOM ---------- */
   function fitActorSize(text) {
@@ -61,12 +114,18 @@
     `<div class="cc-sprocket-track">${'<div class="hole"></div>'.repeat(12)}</div>`;
 
   function buildCardNode(card) {
+    const s = styleOf(card);
+    const t = themeOf(s);
+    const bg = bgOf(s);
+    const nameFont = FONTS[s.nameFont] || FONTS.cinzel;
+    const titleFont = FONTS[s.titleFont] || FONTS.playfair;
+
     const el = document.createElement('div');
     el.className = 'cine-card';
     el.innerHTML = `
       <div class="cine-card-inner">
         <div class="cc-top">
-          <span>CINEPHILE</span>
+          <span class="cc-brand"></span>
           <span class="cc-num">N&ordm; ${pad2(card.num)}</span>
         </div>
         <div class="cc-actor"></div>
@@ -75,28 +134,80 @@
           <div class="cc-photo"><img alt=""></div>
           <div class="cc-sprockets">${sprocketTrack()}</div>
         </div>
-        <div class="cc-divider"><span class="line"></span><span class="star">&#9733;</span><span class="line"></span></div>
-        <div class="cc-featured">FEATURED IN</div>
+        <div class="cc-divider"><span class="line l1"></span><span class="star">&#9733;</span><span class="line l2"></span></div>
+        <div class="cc-featured"></div>
         <div class="cc-movie"></div>
-        <div class="cc-bottom">THE MOVIE GUESSING GAME</div>
+        <div class="cc-bottom"></div>
       </div>`;
+
+    // Frame + panel colours
+    el.style.background = foil(t);
+    const inner = el.querySelector('.cine-card-inner');
+    inner.style.background = bg.panel;
+    inner.style.borderColor = t.bright + '59';
+
+    const brand = el.querySelector('.cc-brand');
+    brand.textContent = s.brand;
+    el.querySelector('.cc-top').style.color = t.accent;
+
+    const numEl = el.querySelector('.cc-num');
+    numEl.style.borderColor = t.accent + '8c';
+    numEl.style.background = t.accent + '14';
+    numEl.style.color = bg.light ? t.deep : t.bright;
 
     const actorEl = el.querySelector('.cc-actor');
     actorEl.textContent = card.actor.toUpperCase();
     actorEl.style.fontSize = fitActorSize(card.actor) + 'px';
+    actorEl.style.fontFamily = nameFont.family;
+    actorEl.style.fontWeight = nameFont.weight;
+    actorEl.style.color = bg.light ? t.deep : t.bright;
+    actorEl.style.textShadow = bg.light
+      ? '0 1px 0 rgba(255,255,255,0.6)'
+      : `0 1px 0 ${t.deep}, 0 2px 6px rgba(0,0,0,0.8)`;
+
+    const frame = el.querySelector('.cc-frame');
+    frame.style.background = bg.frame;
+    frame.style.borderColor = t.accent + '80';
+    el.querySelectorAll('.cc-sprockets').forEach(sp => {
+      sp.style.background = bg.frame;
+      sp.hidden = !s.sprockets;
+    });
+    el.querySelectorAll('.cc-sprocket-track .hole').forEach(h => { h.style.background = t.accent; });
+
+    const photo = el.querySelector('.cc-photo');
+    photo.style.background = `linear-gradient(150deg, ${bg.photo[0]}, ${bg.photo[1]})`;
+    const img = photo.querySelector('img');
+    if (card.image) {
+      img.src = card.image;
+      img.style.objectFit = s.photoFit;
+      img.style.objectPosition = `center ${s.photoPos}`;
+    } else {
+      img.src = placeholderSvg(t, bg);
+      photo.classList.add('is-placeholder');
+    }
+
+    el.querySelectorAll('.cc-divider .line').forEach(l => {
+      l.style.background = `linear-gradient(90deg, transparent, ${t.accent}bf, transparent)`;
+    });
+    el.querySelector('.cc-divider .star').style.color = t.accent;
+
+    const featured = el.querySelector('.cc-featured');
+    featured.textContent = s.label;
+    featured.style.color = bg.dim;
 
     const movieEl = el.querySelector('.cc-movie');
     movieEl.textContent = card.movie;
     movieEl.style.fontSize = fitMovieSize(card.movie) + 'px';
+    movieEl.style.fontFamily = titleFont.family;
+    movieEl.style.fontWeight = titleFont.weight;
+    movieEl.style.fontStyle = titleFont.italic ? 'italic' : 'normal';
+    movieEl.style.color = bg.text;
+    movieEl.style.textShadow = bg.light ? 'none' : '0 2px 5px rgba(0,0,0,0.7)';
 
-    const photo = el.querySelector('.cc-photo');
-    const img = photo.querySelector('img');
-    if (card.image) {
-      img.src = card.image;
-    } else {
-      img.src = PLACEHOLDER_SVG;
-      photo.classList.add('is-placeholder');
-    }
+    const bottom = el.querySelector('.cc-bottom');
+    bottom.textContent = s.footer;
+    bottom.style.color = bg.faint;
+    bottom.style.borderTopColor = t.accent + '38';
     return el;
   }
 
@@ -198,6 +309,43 @@
   const imageDrop = document.getElementById('image-drop');
   const imagePreview = document.getElementById('image-preview');
   const imageDropText = document.getElementById('image-drop-text');
+  const fieldNum = document.getElementById('field-num');
+  const fieldNameFont = document.getElementById('field-name-font');
+  const fieldTitleFont = document.getElementById('field-title-font');
+  const fieldPhotoFit = document.getElementById('field-photo-fit');
+  const fieldPhotoPos = document.getElementById('field-photo-pos');
+  const fieldBrand = document.getElementById('field-brand');
+  const fieldLabel = document.getElementById('field-label');
+  const fieldFooter = document.getElementById('field-footer');
+  const fieldSprockets = document.getElementById('field-sprockets');
+  const fieldApplyAll = document.getElementById('field-apply-all');
+  const themeSwatches = document.getElementById('theme-swatches');
+  const bgSwatches = document.getElementById('bg-swatches');
+  let selectedTheme = DEFAULT_STYLE.theme;
+  let selectedBg = DEFAULT_STYLE.bg;
+
+  function renderSwatches() {
+    themeSwatches.innerHTML = '';
+    for (const [key, t] of Object.entries(THEMES)) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'swatch' + (key === selectedTheme ? ' selected' : '');
+      b.style.background = foil(t);
+      b.title = t.name;
+      b.addEventListener('click', () => { selectedTheme = key; renderSwatches(); });
+      themeSwatches.appendChild(b);
+    }
+    bgSwatches.innerHTML = '';
+    for (const [key, bg] of Object.entries(BACKGROUNDS)) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'swatch' + (key === selectedBg ? ' selected' : '');
+      b.style.background = bg.panel;
+      b.title = bg.name;
+      b.addEventListener('click', () => { selectedBg = key; renderSwatches(); });
+      bgSwatches.appendChild(b);
+    }
+  }
 
   function openModal(card) {
     editingId = card ? card.id : null;
@@ -205,9 +353,40 @@
     fieldActor.value = card ? card.actor : '';
     fieldMovie.value = card ? card.movie : '';
     modalImage = card ? card.image : null;
+
+    const s = card ? styleOf(card) : { ...DEFAULT_STYLE };
+    selectedTheme = s.theme;
+    selectedBg = s.bg;
+    fieldNameFont.value = s.nameFont;
+    fieldTitleFont.value = s.titleFont;
+    fieldPhotoFit.value = s.photoFit;
+    fieldPhotoPos.value = s.photoPos;
+    fieldBrand.value = s.brand;
+    fieldLabel.value = s.label;
+    fieldFooter.value = s.footer;
+    fieldSprockets.checked = s.sprockets;
+    fieldApplyAll.checked = false;
+    fieldNum.value = card ? card.num : cards.reduce((m, c) => Math.max(m, c.num), 0) + 1;
+    renderSwatches();
+
     refreshPreview();
     backdrop.hidden = false;
     fieldActor.focus();
+  }
+
+  function collectStyle() {
+    return {
+      theme: selectedTheme,
+      bg: selectedBg,
+      nameFont: fieldNameFont.value,
+      titleFont: fieldTitleFont.value,
+      photoFit: fieldPhotoFit.value,
+      photoPos: fieldPhotoPos.value,
+      sprockets: fieldSprockets.checked,
+      brand: fieldBrand.value.trim() || DEFAULT_STYLE.brand,
+      label: fieldLabel.value.trim(),
+      footer: fieldFooter.value.trim(),
+    };
   }
   function closeModal() { backdrop.hidden = true; }
   function refreshPreview() {
@@ -250,23 +429,29 @@
     const actor = fieldActor.value.trim();
     const movie = fieldMovie.value.trim();
     if (!actor || !movie) return;
+    const style = collectStyle();
+    const num = Math.max(1, parseInt(fieldNum.value, 10) ||
+      cards.reduce((m, c) => Math.max(m, c.num), 0) + 1);
 
     if (editingId) {
       const card = cards.find(c => c.id === editingId);
-      Object.assign(card, { actor, movie, image: modalImage });
+      Object.assign(card, { actor, movie, num, image: modalImage, style });
       await DB.put(card);
       toast('Card updated');
     } else {
-      const card = {
-        id: 'user-' + Date.now(),
-        num: cards.reduce((m, c) => Math.max(m, c.num), 0) + 1,
-        actor, movie,
-        image: modalImage,
-      };
+      const card = { id: 'user-' + Date.now(), num, actor, movie, image: modalImage, style };
       cards.push(card);
       await DB.put(card);
       toast(`Card Nº ${pad2(card.num)} added to the deck`);
     }
+
+    if (fieldApplyAll.checked) {
+      cards.forEach(c => { c.style = { ...style }; });
+      await DB.putMany(cards);
+      toast('Style applied to the whole deck');
+    }
+
+    cards.sort((a, b) => a.num - b.num);
     closeModal();
     render();
   });
